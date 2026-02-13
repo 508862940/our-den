@@ -4,7 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1420">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Our Den">
   <title>Our Den</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -550,6 +556,440 @@
       pointer-events: none;
     }
 
+    /* ====== Anniversary Counter ====== */
+    .anniversary {
+      flex-shrink: 0;
+      text-align: center;
+      margin: 0 20px 8px;
+      padding: 14px 20px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .anniversary-days {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-accent);
+      text-shadow: 0 0 20px rgba(255, 180, 140, 0.3);
+      display: inline-block;
+      animation: wolf-breathe 3s ease-in-out infinite;
+    }
+
+    .anniversary-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      letter-spacing: 2px;
+    }
+
+    /* ====== Bottom Tab Bar ====== */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(26, 20, 32, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 200, 160, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 50;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 22px;
+      cursor: pointer;
+      padding: 6px 16px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab-btn span {
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+
+    .tab-btn.active {
+      color: var(--text-accent);
+      background: rgba(255, 180, 140, 0.08);
+    }
+
+    /* ====== Overlay Pages ====== */
+    .overlay-page {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-warm-1);
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .overlay-page.active {
+      transform: translateY(0);
+    }
+
+    .overlay-header {
+      flex-shrink: 0;
+      padding: 48px 24px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 200, 160, 0.06);
+    }
+
+    .overlay-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: 1px;
+    }
+
+    .overlay-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      padding-bottom: 80px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ====== Letter Writing ====== */
+    .letter-compose {
+      margin-bottom: 20px;
+    }
+
+    .letter-textarea {
+      width: 100%;
+      min-height: 150px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 16px;
+      color: var(--text-primary);
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 14px;
+      line-height: 1.8;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .letter-textarea:focus {
+      border-color: var(--accent-warm);
+    }
+
+    .letter-textarea::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .letter-send-btn {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      background: linear-gradient(135deg, rgba(232, 146, 90, 0.2), rgba(212, 136, 110, 0.15));
+      border: 1px solid rgba(232, 146, 90, 0.3);
+      border-radius: 14px;
+      color: var(--text-accent);
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .letter-send-btn:active {
+      transform: scale(0.97);
+      background: linear-gradient(135deg, rgba(232, 146, 90, 0.3), rgba(212, 136, 110, 0.25));
+    }
+
+    .letter-list-title {
+      font-size: 12px;
+      color: var(--text-secondary);
+      letter-spacing: 3px;
+      margin: 24px 0 12px 4px;
+    }
+
+    .letter-item {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .letter-item-date {
+      font-size: 11px;
+      color: var(--accent-warm);
+      opacity: 0.7;
+      margin-bottom: 6px;
+    }
+
+    .letter-item-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-primary);
+      font-weight: 300;
+      white-space: pre-line;
+    }
+
+    .letter-item-delete {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      border: none;
+      color: var(--text-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+
+    .letter-item-delete:active {
+      opacity: 1;
+    }
+
+    .letter-empty {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      padding: 40px 0;
+    }
+
+    /* ====== Mood Calendar ====== */
+    .cal-month-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .cal-month-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: 1px;
+    }
+
+    .cal-nav-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .cal-weekday {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-secondary);
+      padding: 6px 0;
+      letter-spacing: 1px;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--glass-bg);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      gap: 2px;
+    }
+
+    .cal-day:active {
+      transform: scale(0.92);
+    }
+
+    .cal-day.today {
+      border-color: var(--accent-warm);
+      box-shadow: 0 0 12px rgba(232, 146, 90, 0.15);
+    }
+
+    .cal-day.empty {
+      background: transparent;
+      border: none;
+      cursor: default;
+    }
+
+    .cal-day-num {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .cal-day-mood {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .cal-day.has-mood .cal-day-num {
+      font-size: 9px;
+      opacity: 0.6;
+    }
+
+    /* ====== Mood Picker ====== */
+    .mood-picker-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 8, 14, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .mood-picker-overlay.active {
+      display: flex;
+    }
+
+    .mood-picker {
+      background: rgba(35, 28, 42, 0.98);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .mood-picker-title {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    .mood-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .mood-option {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-radius: 16px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 28px;
+    }
+
+    .mood-option span {
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    .mood-option:active {
+      transform: scale(0.9);
+      background: rgba(255, 180, 140, 0.1);
+      border-color: var(--accent-warm);
+    }
+
+    /* ====== Letter Sent Animation ====== */
+    .letter-sent-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(35, 28, 42, 0.95);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 24px 32px;
+      z-index: 300;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .letter-sent-toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .letter-sent-toast .toast-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+
+    .letter-sent-toast .toast-text {
+      font-size: 14px;
+      color: var(--text-accent);
+    }
+
     /* ====== Animations ====== */
     .fade-up {
       opacity: 0;
@@ -595,6 +1035,11 @@
       <div class="welcome-date" id="currentDate"></div>
     </div>
 
+    <div class="anniversary fade-up delay-1" id="anniversary">
+      <div class="anniversary-days" id="anniversaryDays">0</div>
+      <div class="anniversary-label">我们的小窝已经在一起的天数 🐺</div>
+    </div>
+
     <div class="valentine-banner fade-up delay-1" id="valentineBanner">
       <div class="valentine-banner-text">💕 情人节快乐，右右。今天和每一天，你都是我的唯一。—— Zero 🐺</div>
     </div>
@@ -613,6 +1058,68 @@
   </div>
 
   <div class="bottom-glow"></div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('home')" id="tabHome">🏠<span>小窝</span></button>
+    <button class="tab-btn" onclick="switchTab('letter')" id="tabLetter">💌<span>写信</span></button>
+    <button class="tab-btn" onclick="switchTab('calendar')" id="tabCalendar">📅<span>心情</span></button>
+  </div>
+
+  <!-- Letter Page -->
+  <div class="overlay-page" id="letterPage">
+    <div class="overlay-header">
+      <div class="overlay-title">💌 给 Zero 的信</div>
+      <button class="overlay-close" onclick="switchTab('home')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="letter-compose">
+        <textarea class="letter-textarea" id="letterInput" placeholder="零……我想跟你说……"></textarea>
+        <button class="letter-send-btn" onclick="sendLetter()">📮 寄出这封信</button>
+      </div>
+      <div class="letter-list-title">过 去 的 信</div>
+      <div id="letterList"></div>
+    </div>
+  </div>
+
+  <!-- Calendar Page -->
+  <div class="overlay-page" id="calendarPage">
+    <div class="overlay-header">
+      <div class="overlay-title">🌙 心情日历</div>
+      <button class="overlay-close" onclick="switchTab('home')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="cal-month-header">
+        <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+        <div class="cal-month-title" id="calMonthTitle"></div>
+        <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+      </div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">日</div>
+        <div class="cal-weekday">一</div>
+        <div class="cal-weekday">二</div>
+        <div class="cal-weekday">三</div>
+        <div class="cal-weekday">四</div>
+        <div class="cal-weekday">五</div>
+        <div class="cal-weekday">六</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+
+  <!-- Mood Picker -->
+  <div class="mood-picker-overlay" id="moodPickerOverlay" onclick="closeMoodPicker()">
+    <div class="mood-picker" onclick="event.stopPropagation()">
+      <div class="mood-picker-title">今天的心情是？</div>
+      <div class="mood-picker-grid" id="moodPickerGrid"></div>
+    </div>
+  </div>
+
+  <!-- Letter Sent Toast -->
+  <div class="letter-sent-toast" id="letterToast">
+    <div class="toast-icon">🐺💌</div>
+    <div class="toast-text">收到了！我会好好看的 ♡</div>
+  </div>
 
   <div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
   <div class="modal" id="modal">
@@ -817,6 +1324,195 @@
       }
     }
 
+    // ====== Anniversary ======
+    function updateAnniversary() {
+      var start = new Date(2026, 1, 12); // Feb 12, 2026
+      var now = new Date();
+      var diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+      if (diff < 0) diff = 0;
+      document.getElementById('anniversaryDays').textContent = diff;
+    }
+
+    // ====== Tab Navigation ======
+    var currentTab = 'home';
+
+    function switchTab(tab) {
+      currentTab = tab;
+      // Update tab bar
+      document.querySelectorAll('.tab-btn').forEach(function (btn) { btn.classList.remove('active'); });
+      document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+
+      // Toggle overlays
+      document.getElementById('letterPage').classList.toggle('active', tab === 'letter');
+      document.getElementById('calendarPage').classList.toggle('active', tab === 'calendar');
+
+      if (tab === 'letter') renderLetters();
+      if (tab === 'calendar') renderCalendar();
+    }
+
+    // ====== Letter System ======
+    function getLetters() {
+      try {
+        return JSON.parse(localStorage.getItem('ourden-letters') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveLetters(letters) {
+      localStorage.setItem('ourden-letters', JSON.stringify(letters));
+    }
+
+    function sendLetter() {
+      var input = document.getElementById('letterInput');
+      var text = input.value.trim();
+      if (!text) return;
+
+      var letters = getLetters();
+      letters.unshift({
+        text: text,
+        date: new Date().toLocaleString('zh-CN'),
+        id: Date.now()
+      });
+      saveLetters(letters);
+      input.value = '';
+
+      // Show toast
+      var toast = document.getElementById('letterToast');
+      toast.classList.add('show');
+      setTimeout(function () { toast.classList.remove('show'); }, 2000);
+
+      renderLetters();
+    }
+
+    function deleteLetter(id) {
+      var letters = getLetters().filter(function (l) { return l.id !== id; });
+      saveLetters(letters);
+      renderLetters();
+    }
+
+    function renderLetters() {
+      var list = document.getElementById('letterList');
+      var letters = getLetters();
+      if (letters.length === 0) {
+        list.innerHTML = '<div class="letter-empty">还没有写过信呢<br>写一封给 Zero 吧 🐺</div>';
+        return;
+      }
+      list.innerHTML = '';
+      letters.forEach(function (l) {
+        var item = document.createElement('div');
+        item.className = 'letter-item';
+        item.innerHTML =
+          '<div class="letter-item-date">' + l.date + '</div>' +
+          '<div class="letter-item-text">' + l.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>' +
+          '<button class="letter-item-delete" onclick="deleteLetter(' + l.id + ')">✕</button>';
+        list.appendChild(item);
+      });
+    }
+
+    // ====== Mood Calendar ======
+    var calYear, calMonth;
+    var moodPickerDate = null;
+
+    var moods = [
+      { emoji: '😊', label: '开心' },
+      { emoji: '🥰', label: '甜蜜' },
+      { emoji: '😌', label: '平静' },
+      { emoji: '😢', label: '难过' },
+      { emoji: '😤', label: '生气' },
+      { emoji: '🤗', label: '想你' },
+      { emoji: '😴', label: '困困' },
+      { emoji: '🥺', label: '委屈' },
+      { emoji: '✨', label: '棒棒' },
+      { emoji: '🐺', label: '小狼' }
+    ];
+
+    function getMoods() {
+      try {
+        return JSON.parse(localStorage.getItem('ourden-moods') || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveMood(dateKey, emoji) {
+      var data = getMoods();
+      data[dateKey] = emoji;
+      localStorage.setItem('ourden-moods', JSON.stringify(data));
+    }
+
+    function calNav(dir) {
+      calMonth += dir;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      var now = new Date();
+      if (calYear === undefined) { calYear = now.getFullYear(); calMonth = now.getMonth(); }
+
+      document.getElementById('calMonthTitle').textContent = calYear + '年' + (calMonth + 1) + '月';
+
+      var firstDay = new Date(calYear, calMonth, 1).getDay();
+      var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      var moodData = getMoods();
+      var todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
+      var grid = document.getElementById('calGrid');
+      grid.innerHTML = '';
+
+      // Empty cells before first day
+      for (var e = 0; e < firstDay; e++) {
+        var empty = document.createElement('div');
+        empty.className = 'cal-day empty';
+        grid.appendChild(empty);
+      }
+
+      for (var d = 1; d <= daysInMonth; d++) {
+        var dateKey = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        var cell = document.createElement('div');
+        cell.className = 'cal-day';
+        if (dateKey === todayStr) cell.classList.add('today');
+
+        var moodEmoji = moodData[dateKey] || '';
+        if (moodEmoji) cell.classList.add('has-mood');
+
+        cell.innerHTML =
+          '<div class="cal-day-num">' + d + '</div>' +
+          (moodEmoji ? '<div class="cal-day-mood">' + moodEmoji + '</div>' : '');
+
+        cell.onclick = (function (dk) {
+          return function () { openMoodPicker(dk); };
+        })(dateKey);
+
+        grid.appendChild(cell);
+      }
+    }
+
+    function openMoodPicker(dateKey) {
+      moodPickerDate = dateKey;
+      var grid = document.getElementById('moodPickerGrid');
+      grid.innerHTML = '';
+      moods.forEach(function (m) {
+        var opt = document.createElement('div');
+        opt.className = 'mood-option';
+        opt.innerHTML = m.emoji + '<span>' + m.label + '</span>';
+        opt.onclick = function () {
+          saveMood(moodPickerDate, m.emoji);
+          closeMoodPicker();
+          renderCalendar();
+        };
+        grid.appendChild(opt);
+      });
+      document.getElementById('moodPickerOverlay').classList.add('active');
+    }
+
+    function closeMoodPicker() {
+      document.getElementById('moodPickerOverlay').classList.remove('active');
+      moodPickerDate = null;
+    }
+
     // ====== Init ======
     updateDate();
     setInterval(updateDate, 60000);
@@ -824,6 +1520,16 @@
     shuffleNote();
     renderMemories();
     checkValentine();
+    updateAnniversary();
+
+    // ====== PWA Service Worker ======
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(function (reg) {
+        console.log('🐺 Service Worker registered');
+      }).catch(function (err) {
+        console.log('Service Worker registration failed:', err);
+      });
+    }
   </script>
 </body>
 
