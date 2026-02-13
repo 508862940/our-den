@@ -1401,6 +1401,13 @@
       saveLetters(letters);
       input.value = '';
 
+      // Also save to filesystem via API
+      fetch('/api/letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text })
+      }).catch(function () { /* fallback: localStorage already saved */ });
+
       // Show toast
       var toast = document.getElementById('letterToast');
       toast.classList.add('show');
@@ -1463,6 +1470,13 @@
       var data = getMoods();
       data[dateKey] = emoji;
       localStorage.setItem('ourden-moods', JSON.stringify(data));
+
+      // Also save to filesystem via API
+      fetch('/api/mood', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: dateKey, emoji: emoji })
+      }).catch(function () { /* fallback: localStorage already saved */ });
     }
 
     function calNav(dir) {
