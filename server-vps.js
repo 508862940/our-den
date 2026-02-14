@@ -93,7 +93,7 @@ const server = http.createServer(async function (req, res) {
     }
 
     // ====== Webhook: Auto Deploy ======
-    if (req.method === 'POST' && req.url === '/webhook/deploy') {
+    if (req.method === 'POST' && req.url.startsWith('/webhook/deploy')) {
         var deploySecret = 'zero-deploy-5200';
         var body = '';
         req.on('data', function (chunk) { body += chunk; });
