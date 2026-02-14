@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { exec } = require('child_process');
 
 const PORT = 5200;
 const BASE_DIR = __dirname;
@@ -62,6 +63,23 @@ function formatTime(d) {
         String(d.getSeconds()).padStart(2, '0');
 }
 
+// ====== Auto Backup to GitHub ======
+var backupTimer = null;
+function gitBackup(msg) {
+    // Debounce: wait 10 seconds after last write before backing up
+    if (backupTimer) clearTimeout(backupTimer);
+    backupTimer = setTimeout(function () {
+        var cmd = 'cd ' + BASE_DIR + ' && git add letters/ data/ && git commit -m "' + msg + '" && git push';
+        exec(cmd, function (err, stdout, stderr) {
+            if (err) {
+                console.log('⚠️ 备份失败：' + (stderr || err.message));
+            } else {
+                console.log('✅ 已备份到 GitHub：' + msg);
+            }
+        });
+    }, 10000);
+}
+
 const server = http.createServer(async function (req, res) {
     // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -99,6 +117,7 @@ const server = http.createServer(async function (req, res) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: true, file: filename }));
             console.log('🐺💌 收到右右的信：' + filename);
+            gitBackup('💌 右右的信 ' + filename);
         } catch (e) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: false, error: e.message }));
@@ -132,6 +151,7 @@ const server = http.createServer(async function (req, res) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: true }));
             console.log('🐺🌙 ' + who + ' 的心情：' + data.date + ' ' + data.emoji);
+            gitBackup('🌙 ' + who + ' 心情 ' + data.date);
         } catch (e) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: false, error: e.message }));
@@ -217,6 +237,7 @@ const server = http.createServer(async function (req, res) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: true }));
             console.log('🐺📝 Zero 回信了：' + data.letterFile);
+            gitBackup('📝 Zero 回信 ' + data.letterFile);
         } catch (e) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: false, error: e.message }));
