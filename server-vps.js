@@ -98,27 +98,30 @@ const server = http.createServer(async function (req, res) {
         var body = '';
         req.on('data', function (chunk) { body += chunk; });
         req.on('end', function () {
-            // Simple secret check via query param
-            var url = new URL(req.url, 'http://localhost');
-            // Accept if auth header or body contains our secret
             if (req.headers['x-deploy-secret'] !== deploySecret &&
                 !req.url.includes('secret=' + deploySecret)) {
                 res.writeHead(403, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok: false, error: 'forbidden' }));
                 return;
             }
-            console.log('🚀 Deploy webhook triggered! Pulling latest code...');
-            exec('cd ' + BASE_DIR + ' && git pull && pm2 restart our-den', function (err, stdout, stderr) {
-                if (err) {
-                    console.log('⚠️ Deploy failed: ' + (stderr || err.message));
-                    res.writeHead(500, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ ok: false, error: stderr || err.message }));
-                } else {
-                    console.log('✅ Deploy success!\n' + stdout);
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ ok: true, output: stdout }));
-                }
-            });
+            // Respond FIRST, then deploy after delay
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true, message: 'deploying...' }));
+            console.log('🚀 Deploy webhook triggered! Will pull in 2s...');
+
+            setTimeout(function () {
+                exec('cd ' + BASE_DIR + ' && git pull', function (err, stdout, stderr) {
+                    if (err) {
+                        console.log('⚠️ Git pull failed: ' + (stderr || err.message));
+                    } else {
+                        console.log('✅ Git pull done: ' + stdout);
+                        // Restart after pull completes
+                        exec('pm2 restart our-den', function () {
+                            console.log('✅ pm2 restarted!');
+                        });
+                    }
+                });
+            }, 2000);
         });
         return;
     }
