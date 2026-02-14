@@ -991,6 +991,23 @@
       margin-top: 6px;
     }
 
+    .ann-delete-btn {
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      font-size: 11px;
+      opacity: 0;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.5);
+      transition: opacity 0.2s;
+      z-index: 12;
+    }
+
+    .sticky-note:hover .ann-delete-btn,
+    .sticky-note:active .ann-delete-btn {
+      opacity: 1;
+    }
+
     /* Sticker */
     .letter-sticker {
       position: absolute;
@@ -2098,12 +2115,33 @@
       if (ann.type === 'note') {
         el = document.createElement('div');
         el.className = 'sticky-note from-' + ann.from;
-        el.innerHTML = ann.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+        el.innerHTML = '<span class="ann-delete-btn" data-del="' + ann.id + '">✕</span>' +
+          ann.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') +
           '<div class="sticky-note-from">—— ' + (ann.from === 'righright' ? '右右' : 'Zero 🐺') + '</div>';
+        // Delete button
+        el.querySelector('.ann-delete-btn').addEventListener('click', function (e) {
+          e.stopPropagation();
+          deleteAnnotation(ann.id);
+        });
       } else {
         el = document.createElement('div');
         el.className = 'letter-sticker';
         el.textContent = ann.content;
+        // Double tap to delete sticker
+        var lastTap = 0;
+        el.addEventListener('touchend', function (e) {
+          var now = Date.now();
+          if (now - lastTap < 300) {
+            e.preventDefault();
+            deleteAnnotation(ann.id);
+          }
+          lastTap = now;
+        });
+        // Double click for desktop
+        el.addEventListener('dblclick', function (e) {
+          e.stopPropagation();
+          deleteAnnotation(ann.id);
+        });
       }
 
       el.style.left = ann.x + 'px';
@@ -2114,6 +2152,13 @@
       makeDraggable(el, ann);
 
       paper.appendChild(el);
+    }
+
+    function deleteAnnotation(annId) {
+      if (!confirm('删掉这个吗？')) return;
+      currentAnnotations = currentAnnotations.filter(function (a) { return a.id !== annId; });
+      saveAnnotations();
+      renderAnnotations();
     }
 
     // ---- Drag ----
