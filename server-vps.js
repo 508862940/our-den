@@ -267,6 +267,62 @@ const server = http.createServer(async function (req, res) {
         return;
     }
 
+    // Save Annotations
+    if (req.method === 'POST' && req.url === '/api/annotations') {
+        if (!checkAuth(req)) {
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
+            return;
+        }
+        try {
+            var data = await readBody(req);
+            var annFile = path.join(DATA_DIR, 'annotations.json');
+            var allAnnotations = {};
+
+            if (fs.existsSync(annFile)) {
+                allAnnotations = JSON.parse(fs.readFileSync(annFile, 'utf-8'));
+            }
+
+            allAnnotations[data.letterId] = data.annotations;
+            fs.writeFileSync(annFile, JSON.stringify(allAnnotations, null, 2), 'utf-8');
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true }));
+            console.log('🐺🎨 annotations updated: letter ' + data.letterId);
+            gitBackup('annotations ' + data.letterId);
+        } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: false, error: e.message }));
+        }
+        return;
+    }
+
+    // Get Annotations
+    if (req.method === 'GET' && req.url.startsWith('/api/annotations')) {
+        if (!checkAuth(req)) {
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
+            return;
+        }
+        try {
+            var urlParams = new URL(req.url, 'http://localhost').searchParams;
+            var letterId = urlParams.get('letterId');
+            var annFile = path.join(DATA_DIR, 'annotations.json');
+            var allAnnotations = {};
+
+            if (fs.existsSync(annFile)) {
+                allAnnotations = JSON.parse(fs.readFileSync(annFile, 'utf-8'));
+            }
+
+            var annotations = allAnnotations[letterId] || [];
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true, annotations: annotations }));
+        } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: false, error: e.message }));
+        }
+        return;
+    }
     // ====== Static File Serving ======
     var urlPath = req.url.split('?')[0];
     if (urlPath === '/') urlPath = '/index.html';
