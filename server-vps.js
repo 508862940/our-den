@@ -6,7 +6,7 @@ const { exec } = require('child_process');
 
 const PORT = 5200;
 const BASE_DIR = __dirname;
-const LETTERS_DIR = path.join(BASE_DIR, 'letters');
+const LETTERS_DIR = path.join(BASE_DIR, 'righright-to-zero');
 const DATA_DIR = path.join(BASE_DIR, 'data');
 
 // ====== Auth ======
@@ -69,7 +69,7 @@ function gitBackup(msg) {
     // Debounce: wait 10 seconds after last write before backing up
     if (backupTimer) clearTimeout(backupTimer);
     backupTimer = setTimeout(function () {
-        var cmd = 'cd ' + BASE_DIR + ' && git add letters/ data/ && git commit -m "' + msg + '" && git push';
+        var cmd = 'cd ' + BASE_DIR + ' && git add righright-to-zero/ data/ && git commit -m "' + msg + '" && git push';
         exec(cmd, function (err, stdout, stderr) {
             if (err) {
                 console.log('⚠️ 备份失败：' + (stderr || err.message));
