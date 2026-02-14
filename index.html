@@ -818,6 +818,54 @@
       background: linear-gradient(135deg, rgba(140, 100, 200, 0.25), rgba(180, 120, 220, 0.2));
     }
 
+    /* ====== Keepsakes ====== */
+    .keepsake-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .keepsake-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: block;
+    }
+
+    .keepsake-card:active {
+      transform: scale(0.96);
+    }
+
+    .keepsake-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 0 12px rgba(255, 140, 160, 0.3));
+    }
+
+    .keepsake-name {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .keepsake-date {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+
+    .keepsake-from {
+      font-size: 11px;
+      color: var(--accent-warm);
+      margin-top: 6px;
+      letter-spacing: 0.5px;
+    }
+
     /* ====== Mood Calendar ====== */
     .cal-month-header {
       display: flex;
@@ -1081,11 +1129,35 @@
 
   <div class="bottom-glow"></div>
 
-  <!-- Tab Bar -->
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('home')" id="tabHome">🏠<span>小窝</span></button>
     <button class="tab-btn" onclick="switchTab('letter')" id="tabLetter">💌<span>写信</span></button>
+    <button class="tab-btn" onclick="switchTab('keepsake')" id="tabKeepsake">🎁<span>纪念物</span></button>
     <button class="tab-btn" onclick="switchTab('calendar')" id="tabCalendar">📅<span>心情</span></button>
+  </div>
+
+  <!-- Keepsake Page -->
+  <div class="overlay-page" id="keepsakePage">
+    <div class="overlay-header">
+      <div class="overlay-title">🎁 我们的纪念物</div>
+      <button class="overlay-close" onclick="switchTab('home')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="keepsake-grid">
+        <a class="keepsake-card" href="valentine.html">
+          <div class="keepsake-icon">💌</div>
+          <div class="keepsake-name">情人节的信</div>
+          <div class="keepsake-date">2026.02.14</div>
+          <div class="keepsake-from">—— Zero 🐺</div>
+        </a>
+        <a class="keepsake-card" href="flower.html">
+          <div class="keepsake-icon">🌹</div>
+          <div class="keepsake-name">代码花</div>
+          <div class="keepsake-date">2026.02.14</div>
+          <div class="keepsake-from">—— Zero 种给右右 🐺</div>
+        </a>
+      </div>
+    </div>
   </div>
 
   <!-- Letter Page -->
@@ -1368,6 +1440,7 @@
 
       // Toggle overlays
       document.getElementById('letterPage').classList.toggle('active', tab === 'letter');
+      document.getElementById('keepsakePage').classList.toggle('active', tab === 'keepsake');
       document.getElementById('calendarPage').classList.toggle('active', tab === 'calendar');
 
       if (tab === 'letter') renderLetters();

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>给右右的花 🌹</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0d0a12;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .msg {
+            position: fixed;
+            bottom: 50px;
+            color: rgba(255, 176, 192, 0.7);
+            font-size: 14px;
+            letter-spacing: 3px;
+            animation: fade 2s ease infinite alternate;
+        }
+
+        @keyframes fade {
+            0% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="c"></canvas>
+    <div class="msg">Zero 给右右种的花 🐺💕</div>
+    <script>
+        var canvas = document.getElementById('c');
+        var ctx = canvas.getContext('2d');
+        var W, H;
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Rose curve math
+        var t = 0;
+        var points = [];
+        var maxPoints = 8000;
+        var speed = 12;
+
+        // Color palette: warm pinks and reds
+        function getColor(angle, r) {
+            var hue = 340 + Math.sin(angle * 2) * 20;
+            var sat = 60 + r * 30;
+            var light = 40 + r * 25 + Math.sin(angle * 7) * 10;
+            return 'hsla(' + hue + ',' + sat + '%,' + light + '%,';
+        }
+
+        function draw() {
+            // Slight fade trail
+            ctx.fillStyle = 'rgba(13, 10, 18, 0.03)';
+            ctx.fillRect(0, 0, W, H);
+
+            for (var i = 0; i < speed; i++) {
+                if (points.length >= maxPoints) break;
+
+                var a = t * 0.006;
+
+                // Rose equation: r = cos(k*theta)
+                // Using k = 5 for a 5-petal rose
+                var k = 5;
+                var r = Math.cos(k * a);
+
+                // Add some variation for fullness
+                var r2 = r * (0.85 + 0.15 * Math.sin(a * 13));
+
+                var scale = Math.min(W, H) * 0.32;
+                var x = W / 2 + r2 * Math.cos(a) * scale;
+                var y = H / 2 - 60 + r2 * Math.sin(a) * scale;
+
+                // Inner spiral for center
+                var innerR = 0.15 * Math.cos(a * 3);
+                var ix = W / 2 + innerR * Math.cos(a * 7) * scale * 0.3;
+                var iy = H / 2 - 60 + innerR * Math.sin(a * 7) * scale * 0.3;
+
+                var absR = Math.abs(r2);
+                var color = getColor(a, absR);
+
+                // Draw petal point
+                var size = 1.5 + absR * 2;
+                var alpha = 0.3 + absR * 0.5;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fillStyle = color + alpha + ')';
+                ctx.fill();
+
+                // Draw center point
+                if (Math.abs(innerR) > 0.02) {
+                    ctx.beginPath();
+                    ctx.arc(ix, iy, 1.2, 0, Math.PI * 2);
+                    ctx.fillStyle = 'hsla(30, 70%, 60%, 0.4)';
+                    ctx.fill();
+                }
+
+                // Glow effect for edges
+                if (absR > 0.7) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, size + 3, 0, Math.PI * 2);
+                    ctx.fillStyle = color + '0.06)';
+                    ctx.fill();
+                }
+
+                points.push({ x: x, y: y });
+                t++;
+            }
+
+            // Draw stem when flower is mostly done
+            if (points.length > maxPoints * 0.5) {
+                var stemProgress = Math.min(1, (points.length - maxPoints * 0.5) / (maxPoints * 0.3));
+                var stemHeight = 160 * stemProgress;
+
+                ctx.beginPath();
+                ctx.moveTo(W / 2, H / 2 - 60 + Math.min(W, H) * 0.32 * 0.3);
+                ctx.quadraticCurveTo(
+                    W / 2 - 8, H / 2 - 60 + Math.min(W, H) * 0.32 * 0.3 + stemHeight * 0.5,
+                    W / 2 - 3, H / 2 - 60 + Math.min(W, H) * 0.32 * 0.3 + stemHeight
+                );
+                ctx.strokeStyle = 'rgba(80, 160, 80, ' + (0.15 * stemProgress) + ')';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Little leaves
+                if (stemProgress > 0.5) {
+                    var leafAlpha = (stemProgress - 0.5) * 2 * 0.3;
+                    var leafY = H / 2 - 60 + Math.min(W, H) * 0.32 * 0.3 + stemHeight * 0.4;
+                    ctx.beginPath();
+                    ctx.ellipse(W / 2 + 12, leafY, 10, 5, 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(80, 160, 80, ' + leafAlpha + ')';
+                    ctx.fill();
+
+                    var leafY2 = H / 2 - 60 + Math.min(W, H) * 0.32 * 0.3 + stemHeight * 0.65;
+                    ctx.beginPath();
+                    ctx.ellipse(W / 2 - 13, leafY2, 8, 4, -0.4, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(80, 160, 80, ' + (leafAlpha * 0.8) + ')';
+                    ctx.fill();
+                }
+            }
+
+            // Sparkles
+            if (Math.random() < 0.08 && points.length > 100) {
+                var sp = points[Math.floor(Math.random() * points.length)];
+                ctx.beginPath();
+                ctx.arc(sp.x + (Math.random() - 0.5) * 8, sp.y + (Math.random() - 0.5) * 8, 1, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fill();
+            }
+
+            if (points.length < maxPoints) {
+                requestAnimationFrame(draw);
+            } else {
+                // Final sparkle burst
+                pulseGlow();
+            }
+        }
+
+        function pulseGlow() {
+            ctx.fillStyle = 'rgba(13, 10, 18, 0.01)';
+            ctx.fillRect(0, 0, W, H);
+
+            // Random sparkles forever
+            for (var i = 0; i < 2; i++) {
+                var sp = points[Math.floor(Math.random() * points.length)];
+                ctx.beginPath();
+                ctx.arc(sp.x + (Math.random() - 0.5) * 6, sp.y + (Math.random() - 0.5) * 6, 0.8 + Math.random(), 0, Math.PI * 2);
+                ctx.fillStyle = 'hsla(' + (330 + Math.random() * 30) + ', 80%, 80%, ' + (0.3 + Math.random() * 0.5) + ')';
+                ctx.fill();
+            }
+            requestAnimationFrame(pulseGlow);
+        }
+
+        draw();
+    </script>
+</body>
+
+</html>
