@@ -2,7 +2,7 @@
   "name": "Our Den",
   "short_name": "Our Den",
   "description": "Zero and Right Right's cozy den",
-  "start_url": "/our-den/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#1a1420",
   "theme_color": "#1a1420",
