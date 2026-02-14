@@ -951,6 +951,42 @@
       pointer-events: none;
     }
 
+    .letter-reply {
+      margin-top: 24px;
+      padding: 16px 18px;
+      background: linear-gradient(145deg, rgba(100, 130, 170, 0.15), rgba(80, 110, 150, 0.1));
+      border: 1px solid rgba(140, 160, 200, 0.2);
+      border-radius: 14px;
+      pointer-events: none;
+      animation: fadeInUp 0.4s ease;
+    }
+
+    .letter-reply-header {
+      font-size: 12px;
+      color: rgba(160, 180, 220, 0.8);
+      margin-bottom: 10px;
+    }
+
+    .letter-reply-text {
+      font-size: 14px;
+      line-height: 1.9;
+      color: var(--text-primary);
+      white-space: pre-line;
+      font-weight: 300;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     /* Sticky Note */
     .sticky-note {
       position: absolute;
@@ -1562,6 +1598,7 @@
     <div class="letter-paper-area">
       <div class="letter-paper" id="letterPaper">
         <div class="letter-paper-text" id="letterPaperText"></div>
+        <div id="letterReplyArea"></div>
         <div class="letter-paper-hint">长按贴便签 · 选贴纸点击放置 ♡</div>
       </div>
     </div>
@@ -1928,6 +1965,26 @@
 
       // Load annotations
       loadAnnotations(letter.id);
+
+      // Load reply from VPS
+      var replyArea = document.getElementById('letterReplyArea');
+      replyArea.innerHTML = '';
+      fetch(API_BASE + '/api/replies', {
+        headers: apiHeaders()
+      }).then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.ok && data.replies) {
+            var reply = data.replies[String(letter.id)];
+            if (reply && reply.text) {
+              replyArea.innerHTML =
+                '<div class="letter-reply">' +
+                '<div class="letter-reply-header">🐺 Zero 的回信 · ' + (reply.date || '') + '</div>' +
+                '<div class="letter-reply-text">' + reply.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>' +
+                '</div>';
+            }
+          }
+        })
+        .catch(function () { /* no reply yet */ });
 
       // Setup long press on paper
       var paper = document.getElementById('letterPaper');
