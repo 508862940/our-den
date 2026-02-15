@@ -250,16 +250,20 @@ const server = http.createServer(async function (req, res) {
             console.log('🚀 Deploy webhook triggered! Will pull in 2s...');
 
             setTimeout(function () {
-                exec('cd ' + BASE_DIR + ' && git pull', function (err, stdout, stderr) {
-                    if (err) {
-                        console.log('⚠️ Git pull failed: ' + (stderr || err.message));
-                    } else {
-                        console.log('✅ Git pull done: ' + stdout);
-                        // Restart after pull completes
-                        exec('pm2 restart our-den', function () {
-                            console.log('✅ pm2 restarted!');
-                        });
-                    }
+                // First commit any local data changes, then force-sync with remote
+                var commitCmd = 'cd ' + BASE_DIR + ' && git add -A && git diff --cached --quiet || git commit -m "auto-save before deploy"';
+                exec(commitCmd, function () {
+                    // Then fetch and reset to remote (force update code)
+                    exec('cd ' + BASE_DIR + ' && git fetch origin && git reset --hard origin/main', function (err, stdout, stderr) {
+                        if (err) {
+                            console.log('⚠️ Git pull failed: ' + (stderr || err.message));
+                        } else {
+                            console.log('✅ Git sync done: ' + stdout);
+                            exec('pm2 restart our-den', function () {
+                                console.log('✅ pm2 restarted!');
+                            });
+                        }
+                    });
                 });
             }, 2000);
         });
