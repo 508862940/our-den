@@ -9,6 +9,36 @@ const BASE_DIR = __dirname;
 const LETTERS_DIR = path.join(BASE_DIR, 'righright-to-zero');
 const DATA_DIR = path.join(BASE_DIR, 'data');
 
+// Rebuild letters.json manifest (for GitHub Pages static loading)
+function rebuildLettersIndex() {
+    try {
+        if (!fs.existsSync(LETTERS_DIR)) return;
+        var files = fs.readdirSync(LETTERS_DIR)
+            .filter(function (f) { return f.endsWith('.md'); })
+            .sort()
+            .reverse();
+
+        var letters = files.map(function (f) {
+            var content = fs.readFileSync(path.join(LETTERS_DIR, f), 'utf-8');
+            // Extract date from filename: 2026-02-14_12-43-27.md
+            var parts = f.replace('.md', '').split('_');
+            var datePart = parts[0] || '';
+            var timePart = (parts[1] || '').replace(/-/g, ':');
+            return {
+                file: f,
+                date: datePart + ' ' + timePart,
+                text: content,
+                id: f.replace('.md', '').replace(/[-_:]/g, '')
+            };
+        });
+
+        fs.writeFileSync(path.join(DATA_DIR, 'letters.json'), JSON.stringify(letters, null, 2), 'utf-8');
+        console.log('📋 letters.json 已更新，共 ' + letters.length + ' 封信');
+    } catch (e) {
+        console.log('⚠️ 更新 letters.json 失败：' + e.message);
+    }
+}
+
 // ====== Auth ======
 // Simple token-based auth for API calls
 // Right Right and Zero share this token
@@ -170,6 +200,7 @@ const server = http.createServer(async function (req, res) {
             content += '*——右右 (o´・ェ・｀o)*\n';
 
             fs.writeFileSync(filepath, content, 'utf-8');
+            rebuildLettersIndex();
 
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: true, file: filename }));
@@ -416,4 +447,5 @@ server.listen(PORT, '0.0.0.0', function () {
     console.log('  🌙 心情保存位置：' + path.join(DATA_DIR, 'moods.json'));
     console.log('  🔑 API Token: ' + AUTH_TOKEN);
     console.log('');
+    rebuildLettersIndex();
 });

@@ -1864,17 +1864,75 @@
       document.getElementById('keepsakePage').classList.toggle('active', tab === 'keepsake');
       document.getElementById('calendarPage').classList.toggle('active', tab === 'calendar');
 
-      if (tab === 'letter') renderLetters();
+      if (tab === 'letter') { renderLetters(); loadServerLetters(); }
       if (tab === 'calendar') renderCalendar();
     }
 
     // ====== Letter System ======
+    var serverLetters = []; // loaded from data/letters.json
+
     function getLetters() {
+      var local = [];
       try {
-        return JSON.parse(localStorage.getItem('ourden-letters') || '[]');
-      } catch (e) {
-        return [];
-      }
+        local = JSON.parse(localStorage.getItem('ourden-letters') || '[]');
+      } catch (e) { local = []; }
+
+      // Merge with server letters, avoid duplicates by id
+      var allLetters = local.slice();
+      var existingIds = {};
+      allLetters.forEach(function (l) { existingIds[String(l.id)] = true; });
+
+      serverLetters.forEach(function (sl) {
+        if (!existingIds[String(sl.id)]) {
+          allLetters.push(sl);
+        }
+      });
+
+      // Sort by date descending
+      allLetters.sort(function (a, b) {
+        return (b.id || 0) - (a.id || 0);
+      });
+
+      return allLetters;
+    }
+
+    function loadServerLetters() {
+      // Try loading from data/letters.json (works on both VPS and GitHub Pages)
+      var baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+      fetch(baseUrl + '/data/letters.json')
+        .then(function (r) { return r.json(); })
+        .then(function (letters) {
+          if (Array.isArray(letters)) {
+            serverLetters = letters.map(function (sl) {
+              // Parse .md content to extract just the letter text
+              var text = sl.text || '';
+              var lines = text.split('\n');
+              // Remove header lines (title, date, dividers, signature)
+              var contentLines = [];
+              var inContent = false;
+              for (var i = 0; i < lines.length; i++) {
+                if (lines[i].trim() === '---' && !inContent) {
+                  inContent = true;
+                  continue;
+                }
+                if (inContent && lines[i].trim() === '---') {
+                  break;
+                }
+                if (inContent) {
+                  contentLines.push(lines[i]);
+                }
+              }
+              return {
+                text: contentLines.join('\n').trim() || text,
+                date: sl.date,
+                id: sl.id,
+                file: sl.file
+              };
+            });
+            renderLetters();
+          }
+        })
+        .catch(function () { /* no server letters available */ });
     }
 
     function saveLetters(letters) {
