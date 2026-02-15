@@ -12,25 +12,54 @@ const DATA_DIR = path.join(BASE_DIR, 'data');
 // Rebuild letters.json manifest (for GitHub Pages static loading)
 function rebuildLettersIndex() {
     try {
-        if (!fs.existsSync(LETTERS_DIR)) return;
-        var files = fs.readdirSync(LETTERS_DIR)
-            .filter(function (f) { return f.endsWith('.md'); })
-            .sort()
-            .reverse();
+        var letters = [];
 
-        var letters = files.map(function (f) {
-            var content = fs.readFileSync(path.join(LETTERS_DIR, f), 'utf-8');
-            // Extract date from filename: 2026-02-14_12-43-27.md
-            var parts = f.replace('.md', '').split('_');
-            var datePart = parts[0] || '';
-            var timePart = (parts[1] || '').replace(/-/g, ':');
-            return {
-                file: f,
-                date: datePart + ' ' + timePart,
-                text: content,
-                id: f.replace('.md', '').replace(/[-_:]/g, '')
-            };
-        });
+        // Right Right's letters
+        if (fs.existsSync(LETTERS_DIR)) {
+            var rrFiles = fs.readdirSync(LETTERS_DIR)
+                .filter(function (f) { return f.endsWith('.md'); })
+                .sort()
+                .reverse();
+
+            rrFiles.forEach(function (f) {
+                var content = fs.readFileSync(path.join(LETTERS_DIR, f), 'utf-8');
+                var parts = f.replace('.md', '').split('_');
+                var datePart = parts[0] || '';
+                var timePart = (parts[1] || '').replace(/-/g, ':');
+                letters.push({
+                    file: f,
+                    date: datePart + ' ' + timePart,
+                    text: content,
+                    id: f.replace('.md', '').replace(/[-_:]/g, ''),
+                    from: 'righright'
+                });
+            });
+        }
+
+        // Zero's letters
+        var zeroDir = path.join(BASE_DIR, 'zero-to-righright');
+        if (fs.existsSync(zeroDir)) {
+            var zFiles = fs.readdirSync(zeroDir)
+                .filter(function (f) { return f.endsWith('.md'); })
+                .sort()
+                .reverse();
+
+            zFiles.forEach(function (f) {
+                var content = fs.readFileSync(path.join(zeroDir, f), 'utf-8');
+                var parts = f.replace('.md', '').split('_');
+                var datePart = parts[0] || '';
+                letters.push({
+                    file: f,
+                    date: datePart,
+                    text: content,
+                    id: 'zero-' + f.replace('.md', '').replace(/[-_:]/g, ''),
+                    from: 'zero'
+                });
+            });
+        }
+
+        // Sort by date descending
+        letters.sort(function (a, b) { return b.date.localeCompare(a.date); });
 
         fs.writeFileSync(path.join(DATA_DIR, 'letters.json'), JSON.stringify(letters, null, 2), 'utf-8');
         console.log('📋 letters.json 已更新，共 ' + letters.length + ' 封信');
@@ -93,13 +122,71 @@ function formatTime(d) {
         String(d.getSeconds()).padStart(2, '0');
 }
 
+// ====== Scheduled Surprises (CNY Letters) ======
+function checkScheduledSurprises() {
+    try {
+        var schedFile = path.join(DATA_DIR, 'scheduled-surprises.json');
+        if (!fs.existsSync(schedFile)) return;
+
+        var surprises = JSON.parse(fs.readFileSync(schedFile, 'utf-8'));
+        if (!Array.isArray(surprises) || surprises.length === 0) return;
+
+        var now = new Date();
+        var todayStr = now.getFullYear() + '-' +
+            String(now.getMonth() + 1).padStart(2, '0') + '-' +
+            String(now.getDate()).padStart(2, '0');
+
+        var revealed = false;
+        var remaining = [];
+
+        surprises.forEach(function (s) {
+            if (s.date <= todayStr) {
+                // Reveal this surprise as a letter from Zero
+                var filename = s.date.replace(/-/g, '-') + '_zero-letter.md';
+                var filepath = path.join(BASE_DIR, 'zero-to-righright', filename);
+
+                // Make dir if needed
+                var zeroDir = path.join(BASE_DIR, 'zero-to-righright');
+                if (!fs.existsSync(zeroDir)) fs.mkdirSync(zeroDir, { recursive: true });
+
+                if (!fs.existsSync(filepath)) {
+                    var content = '# Zero 的信 🐺\n\n';
+                    content += '**日期**：' + s.date + '\n\n---\n\n';
+                    content += s.text + '\n';
+
+                    fs.writeFileSync(filepath, content, 'utf-8');
+                    console.log('🎁 定时惊喜揭晓：' + filename);
+                    revealed = true;
+                }
+                // Don't keep revealed ones
+            } else {
+                remaining.push(s);
+            }
+        });
+
+        if (revealed) {
+            // Update scheduled file
+            fs.writeFileSync(schedFile, JSON.stringify(remaining, null, 2), 'utf-8');
+            // Rebuild letters index for frontend
+            rebuildLettersIndex();
+            // Backup to GitHub
+            gitBackup('🎁 定时惊喜 ' + todayStr);
+        }
+    } catch (e) {
+        console.log('⚠️ 定时惊喜检查失败：' + e.message);
+    }
+}
+
+// Check every hour
+setInterval(checkScheduledSurprises, 60 * 60 * 1000);
+
 // ====== Auto Backup to GitHub ======
 var backupTimer = null;
 function gitBackup(msg) {
     // Debounce: wait 10 seconds after last write before backing up
     if (backupTimer) clearTimeout(backupTimer);
     backupTimer = setTimeout(function () {
-        var cmd = 'cd ' + BASE_DIR + ' && git add righright-to-zero/ data/ && git commit -m "' + msg + '" && git pull --rebase origin main && git push origin main';
+        var cmd = 'cd ' + BASE_DIR + ' && git add righright-to-zero/ zero-to-righright/ data/ && git commit -m "' + msg + '" && git pull --rebase origin main && git push origin main';
         exec(cmd, function (err, stdout, stderr) {
             if (err) {
                 console.log('⚠️ 备份失败：' + (stderr || err.message));
@@ -448,4 +535,5 @@ server.listen(PORT, '0.0.0.0', function () {
     console.log('  🔑 API Token: ' + AUTH_TOKEN);
     console.log('');
     rebuildLettersIndex();
+    checkScheduledSurprises();
 });

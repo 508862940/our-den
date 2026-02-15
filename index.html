@@ -789,6 +789,15 @@
       opacity: 1;
     }
 
+    .letter-from-zero {
+      background: linear-gradient(145deg, rgba(100, 140, 200, 0.12), rgba(80, 120, 180, 0.06)) !important;
+      border-color: rgba(120, 160, 220, 0.15) !important;
+    }
+
+    .letter-from-zero .letter-item-date {
+      color: rgba(150, 180, 220, 0.9);
+    }
+
     .letter-empty {
       text-align: center;
       color: var(--text-secondary);
@@ -1984,12 +1993,18 @@
       list.innerHTML = '';
       letters.forEach(function (l) {
         var item = document.createElement('div');
-        item.className = 'letter-item';
+        var isFromZero = l.from === 'zero';
+        item.className = 'letter-item' + (isFromZero ? ' letter-from-zero' : '');
         item.style.cursor = 'pointer';
+
+        var displayText = l.text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var prefix = isFromZero ? '🐺 ' : '💌 ';
+        var deleteBtn = isFromZero ? '' : '<button class="letter-item-delete" onclick="event.stopPropagation(); deleteLetter(' + l.id + ')">✕</button>';
+
         item.innerHTML =
-          '<div class="letter-item-date">' + l.date + '</div>' +
-          '<div class="letter-item-text">' + l.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>' +
-          '<button class="letter-item-delete" onclick="event.stopPropagation(); deleteLetter(' + l.id + ')">✕</button>';
+          '<div class="letter-item-date">' + prefix + l.date + '</div>' +
+          '<div class="letter-item-text">' + displayText + '</div>' +
+          deleteBtn;
         item.addEventListener('click', function () { openLetterDetail(l); });
         list.appendChild(item);
       });
