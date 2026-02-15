@@ -1886,23 +1886,33 @@
         local = JSON.parse(localStorage.getItem('ourden-letters') || '[]');
       } catch (e) { local = []; }
 
-      // Merge with server letters, avoid duplicates by id
-      var allLetters = local.slice();
-      var existingIds = {};
-      allLetters.forEach(function (l) { existingIds[String(l.id)] = true; });
+      // If server letters loaded, use them as primary and only add truly new local ones
+      if (serverLetters.length > 0) {
+        var serverTexts = {};
+        serverLetters.forEach(function (sl) {
+          // Use first 20 chars of text as fingerprint
+          var key = (sl.text || '').replace(/\s+/g, '').substring(0, 20);
+          serverTexts[key] = true;
+        });
 
-      serverLetters.forEach(function (sl) {
-        if (!existingIds[String(sl.id)]) {
-          allLetters.push(sl);
-        }
-      });
+        var allLetters = serverLetters.slice();
+        local.forEach(function (l) {
+          var key = (l.text || '').replace(/\s+/g, '').substring(0, 20);
+          if (!serverTexts[key]) {
+            allLetters.push(l);
+          }
+        });
 
-      // Sort by date descending
-      allLetters.sort(function (a, b) {
-        return (b.id || 0) - (a.id || 0);
-      });
+        // Sort by date string descending
+        allLetters.sort(function (a, b) {
+          return (b.date || '').localeCompare(a.date || '');
+        });
+        return allLetters;
+      }
 
-      return allLetters;
+      // Fallback: no server letters, just use local
+      local.sort(function (a, b) { return (b.id || 0) - (a.id || 0); });
+      return local;
     }
 
     function loadServerLetters() {
@@ -1935,7 +1945,8 @@
                 text: contentLines.join('\n').trim() || text,
                 date: sl.date,
                 id: sl.id,
-                file: sl.file
+                file: sl.file,
+                from: sl.from || 'righright'
               };
             });
             renderLetters();
