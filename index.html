@@ -2570,6 +2570,38 @@
       });
     }
   </script>
+
+  <!-- CNY Fireworks Button (Feb 16-23) -->
+  <a href="fireworks.html" id="cnyFireworksBtn" title="看烟花！"
+    style="position:fixed;bottom:90px;right:16px;z-index:999;width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,rgba(200,50,50,0.9),rgba(160,20,20,0.95));display:none;align-items:center;justify-content:center;font-size:24px;text-decoration:none;box-shadow:0 4px 16px rgba(200,50,50,0.5),0 0 20px rgba(255,100,50,0.3);border:1px solid rgba(255,215,0,0.4);">🧨</a>
+  <style>
+    @keyframes fcPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        box-shadow: 0 4px 16px rgba(200, 50, 50, 0.5);
+      }
+
+      50% {
+        transform: scale(1.12);
+        box-shadow: 0 6px 24px rgba(255, 80, 50, 0.6);
+      }
+    }
+
+    #cnyFireworksBtn {
+      animation: fcPulse 2s ease-in-out infinite;
+    }
+  </style>
+  <script>
+    (function () {
+      var d = new Date(), m = d.getMonth() + 1, day = d.getDate();
+      if (m === 2 && day >= 16 && day <= 23) {
+        document.getElementById('cnyFireworksBtn').style.display = 'flex';
+      }
+    })();
+  </script>
+
 </body>
 
 </html>
