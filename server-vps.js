@@ -102,6 +102,19 @@ const server = http.createServer(async function (req, res) {
         return;
     }
 
+    // ====== Manual Backup Trigger ======
+    if (req.method === 'POST' && req.url === '/api/backup') {
+        if (!checkAuth(req)) {
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: false, error: 'unauthorized' }));
+            return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, message: 'backup triggered' }));
+        gitBackup('🔄 手动备份');
+        return;
+    }
+
     // ====== Webhook: Auto Deploy ======
     if (req.method === 'POST' && req.url.startsWith('/webhook/deploy')) {
         var deploySecret = 'zero-deploy-5200';
