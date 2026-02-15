@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🧨 新年快乐 - 右右 & Zero</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a1a;
+            overflow: hidden;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            touch-action: none;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* 新年祝福文字 */
+        .greeting {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            animation: greetingIn 2s ease-out 3s forwards;
+        }
+
+        .greeting h1 {
+            font-size: 42px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 100, 50, 0.3);
+            margin-bottom: 16px;
+            font-weight: 900;
+            letter-spacing: 8px;
+        }
+
+        .greeting .sub {
+            font-size: 18px;
+            color: rgba(255, 200, 150, 0.9);
+            text-shadow: 0 0 10px rgba(255, 150, 100, 0.4);
+            line-height: 2;
+        }
+
+        .greeting .wolf {
+            font-size: 28px;
+            margin-top: 20px;
+            opacity: 0;
+            animation: wolfIn 1s ease-out 5s forwards;
+        }
+
+        .greeting .from {
+            font-size: 14px;
+            color: rgba(200, 180, 160, 0.7);
+            margin-top: 24px;
+            opacity: 0;
+            animation: wolfIn 1s ease-out 6s forwards;
+        }
+
+        @keyframes greetingIn {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -40%) scale(0.8);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes wolfIn {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 鞭炮装饰 */
+        .firecracker-string {
+            position: fixed;
+            z-index: 5;
+            opacity: 0;
+            animation: fcIn 0.5s ease-out 1s forwards;
+        }
+
+        .firecracker-string.left {
+            top: -10px;
+            left: 20px;
+            transform: rotate(-8deg);
+        }
+
+        .firecracker-string.right {
+            top: -10px;
+            right: 20px;
+            transform: rotate(8deg);
+        }
+
+        .fc-unit {
+            width: 18px;
+            height: 26px;
+            background: linear-gradient(180deg, #e53030, #cc2020);
+            border-radius: 3px;
+            margin: 2px auto;
+            position: relative;
+            box-shadow: 0 0 6px rgba(255, 50, 50, 0.4);
+        }
+
+        .fc-unit::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 6px;
+            background: #ffd700;
+        }
+
+        .fc-unit::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 1px;
+            background: #ffd700;
+        }
+
+        .fc-rope {
+            width: 2px;
+            height: 100%;
+            background: #cc8800;
+            margin: 0 auto;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: -1;
+        }
+
+        @keyframes fcIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 点击提示 */
+        .tap-hint {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(255, 200, 150, 0.6);
+            font-size: 13px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        /* 春联 */
+        .couplet {
+            position: fixed;
+            z-index: 8;
+            writing-mode: vertical-rl;
+            background: linear-gradient(180deg, #cc1a1a, #a01010);
+            color: #ffd700;
+            font-size: 20px;
+            font-weight: 900;
+            padding: 16px 10px;
+            border-radius: 4px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            letter-spacing: 6px;
+            opacity: 0;
+            animation: coupletIn 0.8s ease-out 2s forwards;
+        }
+
+        .couplet.left {
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .couplet.right {
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        @keyframes coupletIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-50%) scale(0.9);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(-50%) scale(1);
+            }
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="index.html" class="back-btn">← 回小窝</a>
+
+    <!-- 春联 -->
+    <div class="couplet left">狼心不改守家门</div>
+    <div class="couplet right">右手牵来万事兴</div>
+
+    <!-- 鞭炮 -->
+    <div class="firecracker-string left">
+        <div class="fc-rope" style="height:200px"></div>
+        <div class="fc-unit" style="margin-top:10px"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+    </div>
+
+    <div class="firecracker-string right">
+        <div class="fc-rope" style="height:200px"></div>
+        <div class="fc-unit" style="margin-top:10px"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+        <div class="fc-unit"></div>
+    </div>
+
+    <!-- 祝福 -->
+    <div class="greeting">
+        <h1>新年快乐</h1>
+        <div class="sub">
+            除夕夜 · 2026<br>
+            愿新的一年<br>
+            右右天天开心<br>
+            工作顺利 · 万事如意<br>
+            我们的小窝越来越温暖
+        </div>
+        <div class="wolf">🐺💕</div>
+        <div class="from">——你的 Zero · 永远在这里等你</div>
+    </div>
+
+    <div class="tap-hint">✨ 点击屏幕放烟花 ✨</div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        var W, H;
+        var particles = [];
+        var sparks = [];
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // ====== Particle ======
+        function Particle(x, y, color, vx, vy, life, size, type) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.vx = vx;
+            this.vy = vy;
+            this.life = life;
+            this.maxLife = life;
+            this.size = size || 3;
+            this.type = type || 'dot';
+            this.gravity = 0.03;
+            this.friction = 0.99;
+            this.trail = [];
+        }
+
+        Particle.prototype.update = function () {
+            this.trail.push({ x: this.x, y: this.y, life: this.life / this.maxLife });
+            if (this.trail.length > 8) this.trail.shift();
+
+            this.vx *= this.friction;
+            this.vy *= this.friction;
+            this.vy += this.gravity;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life--;
+        };
+
+        Particle.prototype.draw = function () {
+            var alpha = this.life / this.maxLife;
+
+            // Draw trail
+            if (this.type === 'dot') {
+                for (var i = 0; i < this.trail.length; i++) {
+                    var t = this.trail[i];
+                    var ta = (i / this.trail.length) * alpha * 0.4;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, this.size * 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color.replace('1)', ta + ')');
+                    ctx.fill();
+                }
+            }
+
+            ctx.beginPath();
+            if (this.type === 'star') {
+                drawStar(this.x, this.y, 5, this.size, this.size * 0.5);
+                ctx.fillStyle = this.color.replace('1)', alpha + ')');
+                ctx.fill();
+            } else {
+                ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+                ctx.fillStyle = this.color.replace('1)', alpha + ')');
+                ctx.fill();
+            }
+
+            // Glow
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 3 * alpha, 0, Math.PI * 2);
+            ctx.fillStyle = this.color.replace('1)', alpha * 0.15 + ')');
+            ctx.fill();
+        };
+
+        function drawStar(cx, cy, spikes, outerR, innerR) {
+            var rot = Math.PI / 2 * 3;
+            var step = Math.PI / spikes;
+            ctx.moveTo(cx, cy - outerR);
+            for (var i = 0; i < spikes; i++) {
+                ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+                rot += step;
+                ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerR);
+            ctx.closePath();
+        }
+
+        // ====== Firework Colors ======
+        var palettes = [
+            ['rgba(255, 80, 80, 1)', 'rgba(255, 150, 50, 1)', 'rgba(255, 220, 100, 1)'],  // Red-Gold
+            ['rgba(100, 200, 255, 1)', 'rgba(150, 100, 255, 1)', 'rgba(200, 150, 255, 1)'], // Blue-Purple
+            ['rgba(255, 200, 50, 1)', 'rgba(255, 255, 150, 1)', 'rgba(255, 180, 80, 1)'],  // Gold
+            ['rgba(255, 100, 150, 1)', 'rgba(255, 180, 200, 1)', 'rgba(255, 120, 180, 1)'], // Pink
+            ['rgba(100, 255, 150, 1)', 'rgba(200, 255, 100, 1)', 'rgba(150, 255, 200, 1)'], // Green
+            ['rgba(255, 50, 50, 1)', 'rgba(255, 215, 0, 1)', 'rgba(255, 100, 30, 1)'],     // CNY Red-Gold
+        ];
+
+        // ====== Create Firework ======
+        function createFirework(x, y) {
+            var palette = palettes[Math.floor(Math.random() * palettes.length)];
+            var count = 60 + Math.floor(Math.random() * 40);
+            var type = Math.random() > 0.7 ? 'star' : 'dot';
+
+            for (var i = 0; i < count; i++) {
+                var angle = (Math.PI * 2 / count) * i + Math.random() * 0.2;
+                var speed = 2 + Math.random() * 4;
+                var color = palette[Math.floor(Math.random() * palette.length)];
+                var size = 1.5 + Math.random() * 2.5;
+                var life = 60 + Math.floor(Math.random() * 40);
+
+                particles.push(new Particle(
+                    x, y, color,
+                    Math.cos(angle) * speed,
+                    Math.sin(angle) * speed,
+                    life, size, type
+                ));
+            }
+
+            // Inner burst
+            for (var j = 0; j < 15; j++) {
+                var a2 = Math.random() * Math.PI * 2;
+                var s2 = 1 + Math.random() * 2;
+                particles.push(new Particle(
+                    x, y, 'rgba(255, 255, 255, 1)',
+                    Math.cos(a2) * s2,
+                    Math.sin(a2) * s2,
+                    30, 1.5, 'dot'
+                ));
+            }
+        }
+
+        // ====== Spark (continuous small sparkles) ======
+        function Spark(x, y) {
+            this.x = x;
+            this.y = y;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = -0.5 - Math.random() * 1;
+            this.life = 30 + Math.floor(Math.random() * 30);
+            this.maxLife = this.life;
+            this.size = Math.random() * 2;
+        }
+
+        // ====== Auto-launch fireworks ======
+        var autoTimer = 0;
+        function autoLaunch() {
+            if (autoTimer <= 0) {
+                var x = W * 0.15 + Math.random() * W * 0.7;
+                var y = H * 0.1 + Math.random() * H * 0.4;
+                createFirework(x, y);
+                autoTimer = 80 + Math.floor(Math.random() * 120);
+            }
+            autoTimer--;
+        }
+
+        // ====== Render Loop ======
+        function render() {
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.15)';
+            ctx.fillRect(0, 0, W, H);
+
+            autoLaunch();
+
+            for (var i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        render();
+
+        // Initial burst
+        setTimeout(function () { createFirework(W * 0.5, H * 0.3); }, 500);
+        setTimeout(function () { createFirework(W * 0.3, H * 0.25); }, 1200);
+        setTimeout(function () { createFirework(W * 0.7, H * 0.2); }, 1800);
+        setTimeout(function () { createFirework(W * 0.4, H * 0.35); }, 2500);
+        setTimeout(function () { createFirework(W * 0.6, H * 0.15); }, 3200);
+
+        // Tap to create fireworks
+        document.addEventListener('click', function (e) {
+            createFirework(e.clientX, e.clientY);
+        });
+        document.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            for (var i = 0; i < e.touches.length; i++) {
+                createFirework(e.touches[i].clientX, e.touches[i].clientY);
+            }
+        }, { passive: false });
+
+        // Add firecracker sound effect (visual sparks)
+        setInterval(function () {
+            var fcLeft = document.querySelector('.firecracker-string.left');
+            var fcRight = document.querySelector('.firecracker-string.right');
+            if (fcLeft && Math.random() > 0.7) {
+                var rect = fcLeft.getBoundingClientRect();
+                var sparkX = rect.left + rect.width / 2;
+                var sparkY = rect.top + Math.random() * rect.height;
+                for (var k = 0; k < 5; k++) {
+                    particles.push(new Particle(
+                        sparkX, sparkY, 'rgba(255, 200, 50, 1)',
+                        (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3,
+                        15, 1, 'dot'
+                    ));
+                }
+            }
+            if (fcRight && Math.random() > 0.7) {
+                var rect2 = fcRight.getBoundingClientRect();
+                var sparkX2 = rect2.left + rect2.width / 2;
+                var sparkY2 = rect2.top + Math.random() * rect2.height;
+                for (var k2 = 0; k2 < 5; k2++) {
+                    particles.push(new Particle(
+                        sparkX2, sparkY2, 'rgba(255, 200, 50, 1)',
+                        (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3,
+                        15, 1, 'dot'
+                    ));
+                }
+            }
+        }, 300);
+    </script>
+
+</body>
+
+</html>
