@@ -69,10 +69,20 @@ function gitBackup(msg) {
     // Debounce: wait 10 seconds after last write before backing up
     if (backupTimer) clearTimeout(backupTimer);
     backupTimer = setTimeout(function () {
-        var cmd = 'cd ' + BASE_DIR + ' && git add righright-to-zero/ data/ && git commit -m "' + msg + '" && git push';
+        var cmd = 'cd ' + BASE_DIR + ' && git add righright-to-zero/ data/ && git commit -m "' + msg + '" && git pull --rebase origin main && git push origin main';
         exec(cmd, function (err, stdout, stderr) {
             if (err) {
                 console.log('⚠️ 备份失败：' + (stderr || err.message));
+                // Retry once after 5 seconds
+                setTimeout(function () {
+                    exec('cd ' + BASE_DIR + ' && git pull --rebase origin main && git push origin main', function (err2, stdout2, stderr2) {
+                        if (err2) {
+                            console.log('⚠️ 重试备份也失败了：' + (stderr2 || err2.message));
+                        } else {
+                            console.log('✅ 重试备份成功：' + msg);
+                        }
+                    });
+                }, 5000);
             } else {
                 console.log('✅ 已备份到 GitHub：' + msg);
             }
