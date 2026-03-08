@@ -1888,14 +1888,25 @@
 
       // If server letters loaded, use them as primary and only add truly new local ones
       if (serverLetters.length > 0) {
-        var serverTexts = {};
-        serverLetters.forEach(function (sl) {
-          // Use first 20 chars of text as fingerprint
-          var key = (sl.text || '').replace(/\s+/g, '').substring(0, 20);
-          serverTexts[key] = true;
+        // Build text fingerprint -> localStorage ID mapping
+        var localTextMap = {};
+        local.forEach(function (l) {
+          var key = (l.text || '').replace(/\s+/g, '').substring(0, 20);
+          localTextMap[key] = l.id;
         });
 
-        var allLetters = serverLetters.slice();
+        var serverTexts = {};
+        var allLetters = serverLetters.map(function (sl) {
+          var key = (sl.text || '').replace(/\s+/g, '').substring(0, 20);
+          serverTexts[key] = true;
+          // Carry over localStorage ID for annotation/reply lookup
+          var copy = Object.assign({}, sl);
+          if (localTextMap[key]) {
+            copy.localId = localTextMap[key];
+          }
+          return copy;
+        });
+
         local.forEach(function (l) {
           var key = (l.text || '').replace(/\s+/g, '').substring(0, 20);
           if (!serverTexts[key]) {
@@ -2049,8 +2060,12 @@
         row.appendChild(btn);
       });
 
-      // Load annotations
+      // Load annotations — try both server ID and localStorage ID
       loadAnnotations(letter.id);
+      if (letter.localId && String(letter.localId) !== String(letter.id)) {
+        // Also load annotations stored under old localStorage ID
+        loadAnnotations(letter.localId, true);
+      }
 
       // Load reply from VPS
       var replyArea = document.getElementById('letterReplyArea');
@@ -2060,7 +2075,11 @@
       }).then(function (r) { return r.json(); })
         .then(function (data) {
           if (data.ok && data.replies) {
+            // Try server ID first, then localStorage ID
             var reply = data.replies[String(letter.id)];
+            if (!reply && letter.localId) {
+              reply = data.replies[String(letter.localId)];
+            }
             if (reply && reply.text) {
               replyArea.innerHTML =
                 '<div class="letter-reply">' +
@@ -2187,16 +2206,18 @@
       return 'ourden-annotations-' + letterId;
     }
 
-    function loadAnnotations(letterId) {
-      // Clear existing
-      var paper = document.getElementById('letterPaper');
-      paper.querySelectorAll('.sticky-note, .letter-sticker').forEach(function (el) { el.remove(); });
+    function loadAnnotations(letterId, appendMode) {
+      if (!appendMode) {
+        // Clear existing
+        var paper = document.getElementById('letterPaper');
+        paper.querySelectorAll('.sticky-note, .letter-sticker').forEach(function (el) { el.remove(); });
 
-      // Load from localStorage
-      currentAnnotations = [];
-      try {
-        currentAnnotations = JSON.parse(localStorage.getItem(getAnnotationKey(letterId)) || '[]');
-      } catch (e) { currentAnnotations = []; }
+        // Load from localStorage
+        currentAnnotations = [];
+        try {
+          currentAnnotations = JSON.parse(localStorage.getItem(getAnnotationKey(letterId)) || '[]');
+        } catch (e) { currentAnnotations = []; }
+      }
 
       // Also try loading from VPS
       fetch(API_BASE + '/api/annotations?letterId=' + letterId, {
@@ -2204,8 +2225,19 @@
       }).then(function (r) { return r.json(); })
         .then(function (data) {
           if (data.ok && data.annotations && data.annotations.length > 0) {
-            // Merge VPS annotations (VPS is source of truth)
-            currentAnnotations = data.annotations;
+            if (appendMode) {
+              // Append VPS annotations, avoid duplicates by id
+              var existingIds = {};
+              currentAnnotations.forEach(function (a) { existingIds[a.id] = true; });
+              data.annotations.forEach(function (a) {
+                if (!existingIds[a.id]) {
+                  currentAnnotations.push(a);
+                }
+              });
+            } else {
+              // VPS is source of truth
+              currentAnnotations = data.annotations;
+            }
             localStorage.setItem(getAnnotationKey(letterId), JSON.stringify(currentAnnotations));
           }
           renderAnnotations();
